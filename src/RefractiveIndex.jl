@@ -82,7 +82,6 @@ function RefractiveMaterial(url::String)
 end
 
 show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = show(io, m.name)
-μ
 (m::RefractiveMaterial)(λ::Float64) = m.dispersion(λ)
 (m::RefractiveMaterial)(λ::AbstractQuantity) = m(Float64(ustrip(uconvert(u"μm", λ))))
 (m::RefractiveMaterial)(λ, dim::String) = m(λ*uparse(dim))
