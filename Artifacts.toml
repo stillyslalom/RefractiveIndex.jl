@@ -1,0 +1,6 @@
+["refractiveindex.info"]
+git-tree-sha1 = "452b7485f0dcc4e8aa3f6d99a12c8ed27d1fe558"
+
+    [["refractiveindex.info".download]]
+    sha256 = "1a2a310a9d3928c96278168a79ac9a05d390a6bd5a620fd27539bc548c7dfea5"
+    url = "https://github.com/polyanskiy/refractiveindex.info-database/archive/v2020-01-19.tar.gz"

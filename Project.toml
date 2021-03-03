@@ -3,6 +3,13 @@ uuid = "97a43521-7681-4ec2-835f-5b8ab7e7617e"
 authors = ["Alex Ames <alexander.m.ames@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
+
 [compat]
 julia = "1.4"
 

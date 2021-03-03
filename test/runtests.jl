@@ -1,6 +1,44 @@
 using RefractiveIndex
 using Test
 
+function midrange(material)
+    λmin, λmax = material.λrange
+    return λmin + 0.5(λmax - λmin)
+end
+
+function testRM(material, n_ref)
+    n = material(midrange(material))
+    # Compare only fractional parts
+    isapprox(n_ref % 1, n % 1, rtol=1e-3)
+end
+
 @testset "RefractiveIndex.jl" begin
-    # Write your tests here.
+    @testset "Dispersion formulas" begin
+        # Sellmeier
+        @test testRM(RefractiveMaterial("main", "Ar", "Grace-liquid-90K"), 1.2281)
+
+        # Sellmeier-2
+        @test testRM(RefractiveMaterial("main", "CdTe", "Marple"), 2.7273)
+
+        # Polynomial
+        @test testRM(RefractiveMaterial("other", "doped crystals/Mg-LiTaO3", "Moutzouris-o"), 2.1337)
+
+        # RefractiveIndex.INFO
+        @test testRM(RefractiveMaterial("main", "ZnTe", "Li"), 2.6605)
+
+        # Cauchy
+        @test testRM(RefractiveMaterial("main", "SF6", "Vukovic"), 1.00072071)
+
+        # Gases
+        @test testRM(RefractiveMaterial("main", "He", "Mansfield"), 1.000034724)
+
+        # Herzberger
+        @test testRM(RefractiveMaterial("main", "Si", "Edwards"), 3.4208)
+
+        # Retro
+        @test testRM(RefractiveMaterial("main", "AgBr", "Schroter"), 2.2600)
+
+        # Exotic
+        @test testRM(RefractiveMaterial("organic", "CH4N2O - urea","Rosker-e"), 1.6000)
+    end
 end
