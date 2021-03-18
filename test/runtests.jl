@@ -21,7 +21,7 @@ end
         @test testRM(RefractiveMaterial("main", "CdTe", "Marple"), 2.7273)
 
         # Polynomial
-        @test testRM(RefractiveMaterial("other", "doped crystals/Mg-LiTaO3", "Moutzouris-o"), 2.1337)
+        @test testRM(RefractiveMaterial("other", "Mg-LiTaO3", "Moutzouris-o"), 2.1337)
 
         # RefractiveIndex.INFO
         @test testRM(RefractiveMaterial("main", "ZnTe", "Li"), 2.6605)
@@ -36,9 +36,9 @@ end
         @test testRM(RefractiveMaterial("main", "Si", "Edwards"), 3.4208)
 
         # Retro
-        @test testRM(RefractiveMaterial("main", "AgBr", "Schroter"), 2.2600)
+        @test testRM(RefractiveMaterial("main", "AgBr", "Schröter"), 2.2600)
 
         # Exotic
-        @test testRM(RefractiveMaterial("organic", "CH4N2O - urea","Rosker-e"), 1.6000)
+        @test testRM(RefractiveMaterial("organic", "urea","Rosker-e"), 1.6000)
     end
 end
