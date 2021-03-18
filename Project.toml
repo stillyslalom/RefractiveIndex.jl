@@ -1,7 +1,7 @@
 name = "RefractiveIndex"
 uuid = "97a43521-7681-4ec2-835f-5b8ab7e7617e"
 authors = ["Alex Ames <alexander.m.ames@gmail.com> and contributors"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
