@@ -119,10 +119,29 @@ struct TabulatedNK <: Tabulated
     k::ITP_TYPE
 end
 
+function TabulatedNK(raw::Matrix{Float64})
+    λ = raw[:, 1]
+    n = raw[:, 2]
+    k = raw[:, 3]
+    TabulatedNK(LinearInterpolation(λ, n), LinearInterpolation(λ, k))
+end
+
 struct TabulatedN <: Tabulated
     n::ITP_TYPE
 end
 
+function TabulatedN(raw::Matrix{Float64})
+    λ = raw[:, 1]
+    n = raw[:, 2]
+    TabulatedN(LinearInterpolation(λ, n))
+end
+
 struct TabulatedK <: Tabulated
     k::ITP_TYPE
+end
+
+function TabulatedK(raw::Matrix{Float64})
+    λ = raw[:, 1]
+    k = raw[:, 2]
+    TabulatedK(LinearInterpolation(λ, k))
 end

@@ -41,4 +41,9 @@ end
         # Exotic
         @test testRM(RefractiveMaterial("organic", "urea","Rosker-e"), 1.6000)
     end
+
+    @testset "Tabular data" begin
+        # RefractiveNK
+        @test testRM(RefractiveMaterial("main", "ZnO", "Stelling"), 1.5970)
+    end
 end

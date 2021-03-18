@@ -6,6 +6,7 @@ using Interpolations
 using HTTP.URIs: unescapeuri
 using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
 using Memoize
+using DelimitedFiles: readdlm
 
 import Base: getindex, show
 
@@ -47,7 +48,25 @@ end
 
 function DispersionFormula(data)
     DF = DISPERSIONFORMULAE[data[:type]]
-    DF(str2tuple(data[:coefficients]))
+    if haskey(data, :coefficients)
+        λrange = str2tuple(data[:wavelength_range])
+        return DF(str2tuple(data[:coefficients])), λrange
+    else
+        raw = readdlm(IOBuffer(data[:data]), ' ', Float64)
+        λrange = extrema(@view raw[:, 1])
+        return DF(raw), λrange
+    end
+end
+
+function _RM_data(shelf, book, page)
+    metadata = RI_LIB[(shelf, book, page)]
+    path = joinpath(RI_INFO_ROOT[], "data", metadata.path)
+    isfile(path) || @error "Specified material does not exist"
+    yaml = YAML.load_file(path; dicttype=Dict{Symbol, Any})
+    reference = get(yaml, :REFERENCES, "")
+    comment = get(yaml, :COMMENTS, "")
+    specs = get(yaml, :SPECS, Dict{Symbol, Any}())
+    data = only(get(yaml, :DATA, Dict{Symbol, String}[]))
 end
 """
     RefractiveMaterial(shelf, book, page)
@@ -82,8 +101,7 @@ function RefractiveMaterial(shelf, book, page)
     comment = get(yaml, :COMMENTS, "")
     specs = get(yaml, :SPECS, Dict{Symbol, Any}())
     data = only(get(yaml, :DATA, Dict{Symbol, String}[]))
-    DF = DispersionFormula(data)
-    λrange = str2tuple(data[:wavelength_range])
+    DF, λrange = DispersionFormula(data)
 
     RefractiveMaterial(
         string(book, " ($(metadata.name))"),
@@ -134,4 +152,5 @@ show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = show(io
 @memoize _dim_to_micron(dim) = ustrip(uconvert(u"μm", 1.0uparse(dim)))
 (m::RefractiveMaterial)(λ, dim::String) = m(λ*_dim_to_micron(dim))
 
+(m::RefractiveMaterial{T})(λ::Float64) where {T <: Tabulated}= m.dispersion.n(λ)
 end # module
