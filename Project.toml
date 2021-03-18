@@ -12,6 +12,7 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
+Memoize = "0.4"
 julia = "1.4"
 
 [extras]
