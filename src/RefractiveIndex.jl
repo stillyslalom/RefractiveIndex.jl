@@ -5,6 +5,7 @@ using YAML
 using Interpolations
 using HTTP.URIs: unescapeuri
 using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
+using Memoize
 
 import Base: getindex, show
 
@@ -48,7 +49,30 @@ function DispersionFormula(data)
     DF = DISPERSIONFORMULAE[data[:type]]
     DF(str2tuple(data[:coefficients]))
 end
+"""
+    RefractiveMaterial(shelf, book, page)
 
+Load the refractive index data for the material corresponding to the specified
+shelf, book, and page within the [refractiveindex.info](https://refractiveindex.info/) database. The data
+can be queried by calling the returned `RefractiveMaterial` object at a given wavelength.
+
+# Examples
+```julia-repl
+julia> MgLiTaO3 = RefractiveMaterial("other", "Mg-LiTaO3", "Moutzouris-o")
+"Mg-LiTaO3 (Moutzouris et al. 2011: n(o) 0.450-1.551 µm; 8 mol.% Mg)"
+
+julia> MgLiTaO3(0.45) # default unit is microns
+2.2373000025056826
+
+julia> using Unitful
+
+julia> MgLiTaO3(450u"nm") # auto-conversion from generic Unitful.jl length units
+2.2373000025056826
+
+julia> MgLiTaO3(450e-9, "m") # strings can be used to specify units (parsing is cached)
+2.2373000025056826
+```
+"""
 function RefractiveMaterial(shelf, book, page)
     metadata = RI_LIB[(shelf, book, page)]
     path = joinpath(RI_INFO_ROOT[], "data", metadata.path)
@@ -71,6 +95,27 @@ function RefractiveMaterial(shelf, book, page)
     )
 end
 
+"""
+    RefractiveMaterial(url::String)
+
+Extracts the shelf, book, and page from a refractiveindex.info URL and loads
+the corresponding data from the local database (does not require an active internet connection). 
+
+!!! warning 
+    The refractiveindex.info website is regularly updated and may contain materials not yet
+    available in the local copy of the database, which is updated on a roughly annual basis.
+    Future versions of this package may allow these new entries to be automatically downloaded
+    on demand.
+
+# Examples
+```julia-repl
+julia> Ar = RefractiveMaterial("https://refractiveindex.info/?shelf=main&book=Ar&page=Peck-15C")
+"Ar (Peck and Fisher 1964: n 0.47-2.06 µm; 15 °C)"
+
+julia> Ar(532, "nm")
+1.0002679711455778
+```
+"""
 function RefractiveMaterial(url::String)
     ue_url = unescapeuri(url)
     r = r"refractiveindex.info\/\?shelf=(?'shelf'\w+)&book=(?'book'.*)&page=(?'page'.*)"
@@ -81,11 +126,12 @@ function RefractiveMaterial(url::String)
                        String(m["page"]))
 end
 
+
 show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = show(io, m.name)
 (m::RefractiveMaterial)(λ::Float64) = m.dispersion(λ)
 (m::RefractiveMaterial)(λ::AbstractQuantity) = m(Float64(ustrip(uconvert(u"μm", λ))))
-(m::RefractiveMaterial)(λ, dim::String) = m(λ*uparse(dim))
-(m::RefractiveMaterial)(λ, ::Val{:nm}) = m(λ*u"nm")
-(m::RefractiveMaterial)(λ, s::Symbol) = m(λ, Val(s))
+
+@memoize _dim_to_micron(dim) = ustrip(uconvert(u"μm", 1.0uparse(dim)))
+(m::RefractiveMaterial)(λ, dim::String) = m(λ*_dim_to_micron(dim))
 
 end # module
