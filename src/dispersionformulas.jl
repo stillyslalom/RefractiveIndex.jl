@@ -112,7 +112,8 @@ end
 
 abstract type Tabulated <: DispersionFormula end
 
-const ITP_TYPE = typeof(extrapolate(interpolate(([1.0, 2.0],), [1.0, 2.0], Gridded(Linear())), Throw()))
+_linear_itp(knots, values) = extrapolate(interpolate((knots,), values, Gridded(Linear())), Throw())
+const ITP_TYPE = typeof(_linear_itp([1.0, 2.0], [1.0, 2.0]))
 
 struct TabulatedNK <: Tabulated
     n::ITP_TYPE
@@ -123,7 +124,7 @@ function TabulatedNK(raw::Matrix{Float64})
     λ = raw[:, 1]
     n = raw[:, 2]
     k = raw[:, 3]
-    TabulatedNK(LinearInterpolation(λ, n), LinearInterpolation(λ, k))
+    TabulatedNK(_linear_itp(λ, n), _linear_itp(λ, k))
 end
 
 struct TabulatedN <: Tabulated
@@ -133,7 +134,7 @@ end
 function TabulatedN(raw::Matrix{Float64})
     λ = raw[:, 1]
     n = raw[:, 2]
-    TabulatedN(LinearInterpolation(λ, n))
+    TabulatedN(_linear_itp(λ, n))
 end
 
 struct TabulatedK <: Tabulated
@@ -143,5 +144,5 @@ end
 function TabulatedK(raw::Matrix{Float64})
     λ = raw[:, 1]
     k = raw[:, 2]
-    TabulatedK(LinearInterpolation(λ, k))
+    TabulatedK(_linear_itp(λ, k))
 end

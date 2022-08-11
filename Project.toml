@@ -1,7 +1,7 @@
 name = "RefractiveIndex"
 uuid = "97a43521-7681-4ec2-835f-5b8ab7e7617e"
 authors = ["Alex Ames <alexander.m.ames@gmail.com> and contributors"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -14,7 +14,7 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
 HTTP = "0.9, 1"
-Interpolations = "0.13"
+Interpolations = "0.13, 0.14"
 Memoize = "0.4"
 Unitful = "1.6"
 YAML = "0.4"
