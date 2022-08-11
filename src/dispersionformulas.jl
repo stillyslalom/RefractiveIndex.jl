@@ -112,7 +112,7 @@ end
 
 abstract type Tabulated <: DispersionFormula end
 
-const ITP_TYPE = typeof(LinearInterpolation(sort(rand(2)), zeros(2)))
+const ITP_TYPE = typeof(extrapolate(interpolate(([1.0, 2.0],), [1.0, 2.0], Gridded(Linear())), Throw()))
 
 struct TabulatedNK <: Tabulated
     n::ITP_TYPE
