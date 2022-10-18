@@ -1,6 +1,6 @@
 function __init__()
     RI_INFO_ROOT[] = joinpath(artifact"refractiveindex.info",
-                              "refractiveindex.info-database-2021-07-18", "database")
+                              "refractiveindex.info-database-2022-10-01", "database")
 
     lib = YAML.load_file(joinpath(RI_INFO_ROOT[], "library.yml"), dicttype=Dict{String, Any})
     for shelf in lib
