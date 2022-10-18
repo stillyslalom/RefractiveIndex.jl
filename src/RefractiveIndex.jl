@@ -7,6 +7,8 @@ using HTTP.URIs: unescapeuri
 using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
 using Memoize
 using DelimitedFiles: readdlm
+using Serialization
+using Scratch
 
 import Base: getindex, show
 
@@ -14,8 +16,12 @@ export RefractiveMaterial
 
 const RI_INFO_ROOT = Ref{String}()
 const RI_LIB = Dict{Tuple{String, String, String}, NamedTuple{(:name, :path), Tuple{String, String}}}()
+const DB_VERSION = "refractiveindex.info-database-2022-10-01"
+const DB_INDEX_CACHE_PATH = joinpath(@get_scratch!("DB_VERSION"), "RI_index_cache.jls")
+
 include("init.jl")
 include("dispersionformulas.jl")
+copy!(RI_LIB, Serialization.deserialize(DB_INDEX_CACHE_PATH))
 
 struct RefractiveMaterial{DF<:DispersionFormula}
     name::String
