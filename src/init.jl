@@ -1,4 +1,4 @@
-function __init__()
+function _init_cache()
     if !isfile(DB_INDEX_CACHE_PATH)
         lib = YAML.load_file(joinpath(RI_INFO_ROOT[], "library.yml"), dicttype=Dict{String, Any})
         for shelf in lib
@@ -15,4 +15,8 @@ function __init__()
         end
         Serialization.serialize(DB_INDEX_CACHE_PATH, RI_LIB)
     end
+end
+
+function __init__()
+
 end

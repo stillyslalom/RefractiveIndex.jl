@@ -24,6 +24,8 @@ RI_INFO_ROOT[] = joinpath(artifact"refractiveindex.info", DB_VERSION, "database"
 
 include("init.jl")
 include("dispersionformulas.jl")
+
+_init_cache()
 copy!(RI_LIB, Serialization.deserialize(DB_INDEX_CACHE_PATH))
 
 struct RefractiveMaterial{DF<:DispersionFormula}
