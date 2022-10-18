@@ -1,6 +1,4 @@
 function __init__()
-    RI_INFO_ROOT[] = joinpath(artifact"refractiveindex.info", DB_VERSION, "database")
-
     if !isfile(DB_INDEX_CACHE_PATH)
         lib = YAML.load_file(joinpath(RI_INFO_ROOT[], "library.yml"), dicttype=Dict{String, Any})
         for shelf in lib

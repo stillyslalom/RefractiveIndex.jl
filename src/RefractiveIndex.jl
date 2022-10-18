@@ -9,6 +9,7 @@ using Memoize
 using DelimitedFiles: readdlm
 using Serialization
 using Scratch
+using SnoopPrecompile
 
 import Base: getindex, show
 
@@ -18,6 +19,8 @@ const RI_INFO_ROOT = Ref{String}()
 const RI_LIB = Dict{Tuple{String, String, String}, NamedTuple{(:name, :path), Tuple{String, String}}}()
 const DB_VERSION = "refractiveindex.info-database-2022-10-01"
 const DB_INDEX_CACHE_PATH = joinpath(@get_scratch!("DB_VERSION"), "RI_index_cache.jls")
+
+RI_INFO_ROOT[] = joinpath(artifact"refractiveindex.info", DB_VERSION, "database")
 
 include("init.jl")
 include("dispersionformulas.jl")
@@ -64,16 +67,6 @@ function DispersionFormula(data)
     end
 end
 
-function _RM_data(shelf, book, page)
-    metadata = RI_LIB[(shelf, book, page)]
-    path = joinpath(RI_INFO_ROOT[], "data", metadata.path)
-    isfile(path) || @error "Specified material does not exist"
-    yaml = YAML.load_file(path; dicttype=Dict{Symbol, Any})
-    reference = get(yaml, :REFERENCES, "")
-    comment = get(yaml, :COMMENTS, "")
-    specs = get(yaml, :SPECS, Dict{Symbol, Any}())
-    data = only(get(yaml, :DATA, Dict{Symbol, String}[]))
-end
 """
     RefractiveMaterial(shelf, book, page)
 
@@ -159,4 +152,6 @@ show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = show(io
 (m::RefractiveMaterial)(λ, dim::String) = m(λ*_dim_to_micron(dim))
 
 (m::RefractiveMaterial{T})(λ::Float64) where {T <: Tabulated}= m.dispersion.n(λ)
+
+include("precompile.jl")
 end # module

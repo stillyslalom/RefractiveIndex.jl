@@ -1,7 +1,7 @@
 name = "RefractiveIndex"
 uuid = "97a43521-7681-4ec2-835f-5b8ab7e7617e"
 authors = ["Alex Ames <alexander.m.ames@gmail.com> and contributors"]
-version = "0.2.1"
+version = "0.3.0"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -11,6 +11,7 @@ Memoize = "c03570c3-d221-55d1-a50c-7939bbd78826"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Scratch = "6c6a2e73-6563-6170-7368-637461726353"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+SnoopPrecompile = "66db9d55-30c0-4569-8b51-7e840670fc0c"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
