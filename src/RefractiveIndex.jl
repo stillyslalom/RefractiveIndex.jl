@@ -1,15 +1,14 @@
 module RefractiveIndex
 
-using Pkg.Artifacts
-using YAML
-using Interpolations
 using HTTP.URIs: unescapeuri
-using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
-using Memoize
+using SnoopPrecompile
 using DelimitedFiles: readdlm
 using Serialization
 using Scratch
-using SnoopPrecompile
+using Pkg.Artifacts
+using YAML
+using Interpolations
+using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
 
 import Base: getindex, show
 
@@ -148,12 +147,12 @@ end
 
 show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = show(io, m.name)
 (m::RefractiveMaterial)(λ::Float64) = m.dispersion(λ)
-(m::RefractiveMaterial)(λ::AbstractQuantity) = m(Float64(ustrip(uconvert(u"μm", λ))))
+(m::RefractiveMaterial)(λ::AbstractQuantity) = m(ustrip(Float64, u"μm", λ))
 
-@memoize _dim_to_micron(dim) = ustrip(uconvert(u"μm", 1.0uparse(dim)))
+_dim_to_micron(dim) = ustrip(Float64, u"μm", uparse(dim))
 (m::RefractiveMaterial)(λ, dim::String) = m(λ*_dim_to_micron(dim))
 
-(m::RefractiveMaterial{T})(λ::Float64) where {T <: Tabulated}= m.dispersion.n(λ)
+(m::RefractiveMaterial{T})(λ::Float64) where {T <: Tabulated} = m.dispersion.n(λ)
 
 include("precompile.jl")
 end # module
