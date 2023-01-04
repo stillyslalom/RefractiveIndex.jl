@@ -100,17 +100,27 @@ function RefractiveMaterial(shelf, book, page)
     reference = get(yaml, :REFERENCES, "")
     comment = get(yaml, :COMMENTS, "")
     specs = get(yaml, :SPECS, Dict{Symbol, Any}())
-    data = only(get(yaml, :DATA, Dict{Symbol, String}[]))
-    DF, λrange = DispersionFormula(data)
-
-    RefractiveMaterial(
-        string(book, " ($(metadata.name))"),
-        reference,
-        comment,
-        DF,
-        λrange,
-        specs
-    )
+    data = get(yaml, :DATA, Dict{Symbol, String}[])
+    if length(data) == 1
+        DF, λrange = DispersionFormula(only(data))
+        return RefractiveMaterial(
+            string(book, " ($(metadata.name))"),
+            reference,
+            comment,
+            DF,
+            λrange,
+            specs
+        )
+    else
+        DFs = DispersionFormula.(data)
+        return [RefractiveMaterial(
+            string(book, " ($(metadata.name))"),
+            reference,
+            comment,
+            DF,
+            λrange,
+            specs) for (DF, λrange) in DFs]
+    end
 end
 
 """
@@ -145,7 +155,7 @@ function RefractiveMaterial(url::String)
 end
 
 
-show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = show(io, m.name)
+show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = print(io, m.name, " - ", nameof(typeof(m.dispersion)))
 (m::RefractiveMaterial)(λ::Float64) = m.dispersion(λ)
 (m::RefractiveMaterial)(λ::AbstractQuantity) = m(ustrip(Float64, u"μm", λ))
 
@@ -155,4 +165,5 @@ _dim_to_micron(dim) = ustrip(Float64, u"μm", uparse(dim))
 (m::RefractiveMaterial{T})(λ::Float64) where {T <: Tabulated} = m.dispersion.n(λ)
 
 include("precompile.jl")
-end # module
+
+end

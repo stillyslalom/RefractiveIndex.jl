@@ -46,4 +46,9 @@ end
         # RefractiveNK
         @test testRM(RefractiveMaterial("main", "ZnO", "Stelling"), 1.5970)
     end
+
+    @testset "Multiple dispersion data entries" (https://github.com/stillyslalom/RefractiveIndex.jl/issues/14)
+        # Hikari-F1
+        @test length(RefractiveMaterial("glass", "HIKARI-F", "F1") == 2)
+    end
 end
