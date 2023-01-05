@@ -28,3 +28,12 @@ julia> Ar = RefractiveMaterial("https://refractiveindex.info/?shelf=main&book=Ar
 julia> Ar(532, "nm")
 1.0002679711455778
 ```
+
+In the case of database entries with multiple types of dispersion data (e.g. both raw dispersion data and dispersion formula coefficients), a vector of `RefractiveMaterial`s is returned for each data type:
+```julia
+julia> RefractiveMaterial("glass", "HIKARI-F", "F1")
+2-element Vector{RefractiveMaterial}:
+ HIKARI-F (F1) - Polynomial
+ HIKARI-F (F1) - TabulatedK
+ ```
+ 

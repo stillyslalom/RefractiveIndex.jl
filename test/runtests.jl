@@ -47,8 +47,11 @@ end
         @test testRM(RefractiveMaterial("main", "ZnO", "Stelling"), 1.5970)
     end
 
-    @testset "Multiple dispersion data entries" (https://github.com/stillyslalom/RefractiveIndex.jl/issues/14)
-        # Hikari-F1
-        @test length(RefractiveMaterial("glass", "HIKARI-F", "F1") == 2)
+    @testset "Multiple dispersion data entries" begin # (https://github.com/stillyslalom/RefractiveIndex.jl/issues/14)
+        # Hikari-F1 (Polynomial, TabulatedK)
+        HikariF1 = @test_nowarn RefractiveMaterial("glass", "HIKARI-F", "F1") 
+        @test length(HikariF1) == 2
+        @test isapprox(extinction(HikariF1[2], 0.35), 4.5265e-7, rtol=1e-3)
     end
+
 end

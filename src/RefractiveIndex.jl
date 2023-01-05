@@ -12,7 +12,7 @@ using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
 
 import Base: getindex, show
 
-export RefractiveMaterial
+export RefractiveMaterial, dispersion, extinction
 
 const RI_INFO_ROOT = Ref{String}()
 const RI_LIB = Dict{Tuple{String, String, String}, NamedTuple{(:name, :path), Tuple{String, String}}}()
@@ -74,6 +74,9 @@ end
 Load the refractive index data for the material corresponding to the specified
 shelf, book, and page within the [refractiveindex.info](https://refractiveindex.info/) database. The data
 can be queried by calling the returned `RefractiveMaterial` object at a given wavelength.
+In the case of database entries with multiple types of dispersion data (e.g. both 
+raw dispersion data and dispersion formula coefficients), a vector of `RefractiveMaterial`s
+is returned for each data type.
 
 # Examples
 ```julia-repl
@@ -90,6 +93,11 @@ julia> MgLiTaO3(450u"nm") # auto-conversion from generic Unitful.jl length units
 
 julia> MgLiTaO3(450e-9, "m") # strings can be used to specify units (parsing is cached)
 2.2373000025056826
+
+julia> Hikari_F1 = RefractiveMaterial("glass", "HIKARI-F", "F1")
+2-element Vector{RefractiveMaterial}:
+ HIKARI-F (F1) - Polynomial
+ HIKARI-F (F1) - TabulatedK
 ```
 """
 function RefractiveMaterial(shelf, book, page)
@@ -156,13 +164,31 @@ end
 
 
 show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = print(io, m.name, " - ", nameof(typeof(m.dispersion)))
-(m::RefractiveMaterial)(λ::Float64) = m.dispersion(λ)
-(m::RefractiveMaterial)(λ::AbstractQuantity) = m(ustrip(Float64, u"μm", λ))
+
+"""
+    dispersion(m::RefractiveMaterial, λ::Float64)
+
+Returns the refractive index of the material `m` at the wavelength `λ` (in microns). An error is thrown if the material does not have refractive index data.
+"""
+dispersion(m::RefractiveMaterial, λ::Float64) = m.dispersion(λ)
+dispersion(m::RefractiveMaterial{T}, λ::Float64) where {T <: Union{TabulatedN, TabulatedNK}} = m.dispersion.n(λ)
+dispersion(m::RefractiveMaterial{TabulatedK}, λ::Float64) = throw(ArgumentError("Material does not have refractive index data"))
+
+"""
+    extinction(m::RefractiveMaterial, λ::Float64)
+
+Returns the extinction coefficient of the material `m` at the wavelength `λ` (in microns). An error is thrown if the material does not have extinction data.
+"""
+extinction(m::RefractiveMaterial{T}, λ::Float64) where {T <: Union{TabulatedK, TabulatedNK}} = m.dispersion.k(λ)
+extinction(m::RefractiveMaterial, λ::Float64) = throw(ArgumentError("Material does not have extinction data"))
+
+(m::RefractiveMaterial)(λ::Float64) = dispersion(m, λ)
+(m::RefractiveMaterial)(λ::AbstractQuantity) = dispersion(m, ustrip(Float64, u"μm", λ))
 
 _dim_to_micron(dim) = ustrip(Float64, u"μm", uparse(dim))
-(m::RefractiveMaterial)(λ, dim::String) = m(λ*_dim_to_micron(dim))
+(m::RefractiveMaterial)(λ, dim::String) = dispersion(m, λ*_dim_to_micron(dim))
 
-(m::RefractiveMaterial{T})(λ::Float64) where {T <: Tabulated} = m.dispersion.n(λ)
+# (m::RefractiveMaterial{T})(λ::Float64) where {T <: Union{TabulatedN, TabulatedNK}} = m.dispersion.n(λ)
 
 include("precompile.jl")
 
