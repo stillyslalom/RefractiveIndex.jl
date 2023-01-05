@@ -112,7 +112,7 @@ end
 
 abstract type Tabulated <: DispersionFormula end
 
-_linear_itp(knots, values) = extrapolate(interpolate((knots,), values, Gridded(Linear())), Throw())
+_linear_itp(knots, values) = extrapolate(interpolate((deduplicate_knots!(knots),), values, Gridded(Linear())), Throw())
 const ITP_TYPE = typeof(_linear_itp([1.0, 2.0], [1.0, 2.0]))
 
 function _fix_sorting(raw)

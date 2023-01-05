@@ -8,6 +8,7 @@ using Scratch
 using Pkg.Artifacts
 using YAML
 using Interpolations
+using Interpolations: deduplicate_knots!
 using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
 
 import Base: getindex, show
@@ -217,7 +218,7 @@ julia> T, P = [uparse(replace(specs[s], ' ' => '*')) for s in (:temperature, :pr
 2-element Vector{Quantity{Int64}}:
      15 °C
  101325 Pa
- ```
+```
 """
 function specifications(rm::RefractiveMaterial)
     rm.specs
