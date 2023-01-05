@@ -12,7 +12,7 @@ using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
 
 import Base: getindex, show
 
-export RefractiveMaterial, dispersion, extinction
+export RefractiveMaterial, dispersion, extinction, showmetadata, specifications
 
 const RI_INFO_ROOT = Ref{String}()
 const RI_LIB = Dict{Tuple{String, String, String}, NamedTuple{(:name, :path), Tuple{String, String}}}()
@@ -148,8 +148,13 @@ the corresponding data from the local database (does not require an active inter
 julia> Ar = RefractiveMaterial("https://refractiveindex.info/?shelf=main&book=Ar&page=Peck-15C")
 "Ar (Peck and Fisher 1964: n 0.47-2.06 µm; 15 °C)"
 
-julia> Ar(532, "nm")
-1.0002679711455778
+julia> describe(Ar)
+Name: Ar (Peck and Fisher 1964: n 0.47–2.06 µm; 15 °C)
+Reference: E. R. Peck and D. J. Fisher. Dispersion of argon, <a href="https://doi.org/10.1364/JOSA.54.001362"><i>J. Opt. Soc. Am.</i> <b>54</b>, 1362-1364 (1964)</a>
+Comments: 15 °C, 760 torr (101.325 kPa)
+Dispersion Formula: Gases
+Wavelength Range: (0.4679, 2.0587)
+Specifications: Dict{Symbol, Any}(:temperature => "15 °C", :wavelength_vacuum => true, :pressure => "101325 Pa", :n_absolute => true)
 ```
 """
 function RefractiveMaterial(url::String)
@@ -162,8 +167,61 @@ function RefractiveMaterial(url::String)
                        String(m["page"]))
 end
 
-
 show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = print(io, m.name, " - ", nameof(typeof(m.dispersion)))
+
+"""
+    showmetadata(rm::RefractiveMaterial)
+
+Prints the metadata for the material `rm` to the terminal.
+
+# Examples
+```julia-repl
+julia> Ar = RefractiveMaterial("main", "Ar", "Peck-15C")
+Ar (Peck and Fisher 1964: n 0.47–2.06 µm; 15 °C) - Gases
+
+julia> showmetadata(Ar)
+Name: Ar (Peck and Fisher 1964: n 0.47–2.06 µm; 15 °C)
+Reference: E. R. Peck and D. J. Fisher. Dispersion of argon, <a href="https://doi.org/10.1364/JOSA.54.001362"><i>J. Opt. Soc. Am.</i> <b>54</b>, 1362-1364 (1964)</a>
+Comments: 15 °C, 760 torr (101.325 kPa)
+Dispersion Formula: Gases
+Wavelength Range: (0.4679, 2.0587)
+Specifications: Dict{Symbol, Any}(:temperature => "15 °C", :wavelength_vacuum => true, :pressure => "101325 Pa", :n_absolute => true)
+```
+"""
+function showmetadata(rm::RefractiveMaterial)
+    println("Name: ", rm.name)
+    println("Reference: ", rm.reference)
+    println("Comments: ", rm.comment)
+    println("Dispersion Formula: ", nameof(typeof(rm.dispersion)))
+    println("Wavelength Range: ", rm.λrange)
+    println("Specifications: ", rm.specs)
+end
+
+"""
+    specifications(rm::RefractiveMaterial)
+
+Returns a `Dict` containing the measurement specifications for the material `rm`.
+
+# Examples
+```julia-repl
+julia> using Unitful
+
+julia> specs = specifications(Ar)
+Dict{Symbol, Any} with 4 entries:
+  :temperature       => "15 °C"
+  :wavelength_vacuum => true
+  :pressure          => "101325 Pa"
+  :n_absolute        => true
+
+julia> T, P = [uparse(replace(specs[s], ' ' => '*')) for s in (:temperature, :pressure)]
+2-element Vector{Quantity{Int64}}:
+     15 °C
+ 101325 Pa
+ ```
+"""
+function specifications(rm::RefractiveMaterial)
+    rm.specs
+end
 
 """
     dispersion(m::RefractiveMaterial, λ::Float64)
