@@ -62,7 +62,7 @@ function DispersionFormula(data)
         λrange = str2tuple(data[:wavelength_range])
         return DF(str2tuple(data[:coefficients])), λrange
     else
-        raw = readdlm(IOBuffer(data[:data]), ' ', Float64)
+        raw = readdlm(IOBuffer(data[:data]), Float64)
         λrange = extrema(@view raw[:, 1])
         return DF(raw), λrange
     end

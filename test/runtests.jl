@@ -53,5 +53,11 @@ end
         @test length(HikariF1) == 2
         @test isapprox(extinction(HikariF1[2], 0.35), 4.5265e-7, rtol=1e-3)
     end
+end
 
+@testset "Database" begin
+    # Load all database entries
+    for (shelf, book, page) in keys(RefractiveIndex.RI_LIB)
+        @test_nowarn RefractiveMaterial(shelf, book, page)
+    end
 end

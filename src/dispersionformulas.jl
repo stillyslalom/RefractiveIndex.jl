@@ -115,12 +115,29 @@ abstract type Tabulated <: DispersionFormula end
 _linear_itp(knots, values) = extrapolate(interpolate((knots,), values, Gridded(Linear())), Throw())
 const ITP_TYPE = typeof(_linear_itp([1.0, 2.0], [1.0, 2.0]))
 
+function _fix_sorting(raw)
+    # several entries are not sorted by wavelength, so we need to sort them
+    if !issorted(@views raw[:, 1])
+        raw = sortslices(raw, dims=1, by=first)
+    end
+
+    # workaround for two bad entries with only one wavelength:
+    # ("other", "CR-39", "poly") => (name = "Polymer; n 0.58929 µm", path = "other/commercial plastics/CR-39/poly.yml")
+    # ("other", "CR-39", "mono") => (name = "Monomer; n 0.58929 µm", path = "other/commercial plastics/CR-39/mono.yml")
+    if size(raw, 1) == 1
+        raw = [raw; raw]
+    end
+
+    return raw
+end
+
 struct TabulatedNK <: Tabulated
     n::ITP_TYPE
     k::ITP_TYPE
 end
 
 function TabulatedNK(raw::Matrix{Float64})
+    raw = _fix_sorting(raw)
     λ = raw[:, 1]
     n = raw[:, 2]
     k = raw[:, 3]
@@ -132,6 +149,7 @@ struct TabulatedN <: Tabulated
 end
 
 function TabulatedN(raw::Matrix{Float64})
+    raw = _fix_sorting(raw)
     λ = raw[:, 1]
     n = raw[:, 2]
     TabulatedN(_linear_itp(λ, n))
@@ -142,6 +160,7 @@ struct TabulatedK <: Tabulated
 end
 
 function TabulatedK(raw::Matrix{Float64})
+    raw = _fix_sorting(raw)
     λ = raw[:, 1]
     k = raw[:, 2]
     TabulatedK(_linear_itp(λ, k))
