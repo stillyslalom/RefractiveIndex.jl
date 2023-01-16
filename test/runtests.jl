@@ -54,6 +54,12 @@ end
         @test length(HikariF1) == 2
         @test isapprox(extinction(HikariF1[2], 0.35), 4.5265e-7, rtol=1e-3)
     end
+
+    @testset "Unit parsing" begin
+        MgLiTaO3 = RefractiveMaterial("other", "Mg-LiTaO3", "Moutzouris-o")
+        @test MgLiTaO3(450e-9, "m") ≈ 2.2373000025056826
+        @test MgLiTaO3(1.771653543e-5, "inch") ≈ 2.2373000025056826
+    end
 end
 
 @testset "Database" begin

@@ -244,8 +244,13 @@ extinction(m::RefractiveMaterial, λ::Float64) = throw(ArgumentError("Material d
 (m::RefractiveMaterial)(λ::Float64) = dispersion(m, λ)
 (m::RefractiveMaterial)(λ::AbstractQuantity) = dispersion(m, ustrip(Float64, u"μm", λ))
 
-_dim_to_micron(dim) = ustrip(Float64, u"μm", uparse(dim))
-(m::RefractiveMaterial)(λ, dim::String) = dispersion(m, λ*_dim_to_micron(dim))
+const DIM_TO_MICRON = Dict("nm" => 1e-3, "um" => 1.0, "mm" => 1e3, "cm" => 1e4, "m" => 1e6)
+_to_micron(dim) = get!(DIM_TO_MICRON, dim) do
+    ustrip(Float64, u"μm", 1.0*uparse(dim))::Float64
+end
+    
+# ustrip(Float64, uparse(dim), 1.0u"μm")
+(m::RefractiveMaterial)(λ, dim::String) = m(λ*_to_micron(dim))#*_dim_to_micron(dim))
 
 # (m::RefractiveMaterial{T})(λ::Float64) where {T <: Union{TabulatedN, TabulatedNK}} = m.dispersion.n(λ)
 
