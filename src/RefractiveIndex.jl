@@ -8,11 +8,12 @@ using Scratch
 using Pkg.Artifacts
 using YAML
 using Interpolations
+using Interpolations: deduplicate_knots!
 using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
 
 import Base: getindex, show
 
-export RefractiveMaterial
+export RefractiveMaterial, dispersion, extinction, showmetadata, specifications
 
 const RI_INFO_ROOT = Ref{String}()
 const RI_LIB = Dict{Tuple{String, String, String}, NamedTuple{(:name, :path), Tuple{String, String}}}()
@@ -62,7 +63,7 @@ function DispersionFormula(data)
         λrange = str2tuple(data[:wavelength_range])
         return DF(str2tuple(data[:coefficients])), λrange
     else
-        raw = readdlm(IOBuffer(data[:data]), ' ', Float64)
+        raw = readdlm(IOBuffer(data[:data]), Float64)
         λrange = extrema(@view raw[:, 1])
         return DF(raw), λrange
     end
@@ -74,6 +75,9 @@ end
 Load the refractive index data for the material corresponding to the specified
 shelf, book, and page within the [refractiveindex.info](https://refractiveindex.info/) database. The data
 can be queried by calling the returned `RefractiveMaterial` object at a given wavelength.
+In the case of database entries with multiple types of dispersion data (e.g. both 
+raw dispersion data and dispersion formula coefficients), a vector of `RefractiveMaterial`s
+is returned for each data type.
 
 # Examples
 ```julia-repl
@@ -90,6 +94,11 @@ julia> MgLiTaO3(450u"nm") # auto-conversion from generic Unitful.jl length units
 
 julia> MgLiTaO3(450e-9, "m") # strings can be used to specify units (parsing is cached)
 2.2373000025056826
+
+julia> Hikari_F1 = RefractiveMaterial("glass", "HIKARI-F", "F1")
+2-element Vector{RefractiveMaterial}:
+ HIKARI-F (F1) - Polynomial
+ HIKARI-F (F1) - TabulatedK
 ```
 """
 function RefractiveMaterial(shelf, book, page)
@@ -100,17 +109,27 @@ function RefractiveMaterial(shelf, book, page)
     reference = get(yaml, :REFERENCES, "")
     comment = get(yaml, :COMMENTS, "")
     specs = get(yaml, :SPECS, Dict{Symbol, Any}())
-    data = only(get(yaml, :DATA, Dict{Symbol, String}[]))
-    DF, λrange = DispersionFormula(data)
-
-    RefractiveMaterial(
-        string(book, " ($(metadata.name))"),
-        reference,
-        comment,
-        DF,
-        λrange,
-        specs
-    )
+    data = get(yaml, :DATA, Dict{Symbol, String}[])
+    if length(data) == 1
+        DF, λrange = DispersionFormula(only(data))
+        return RefractiveMaterial(
+            string(book, " ($(metadata.name))"),
+            reference,
+            comment,
+            DF,
+            λrange,
+            specs
+        )
+    else
+        DFs = DispersionFormula.(data)
+        return [RefractiveMaterial(
+            string(book, " ($(metadata.name))"),
+            reference,
+            comment,
+            DF,
+            λrange,
+            specs) for (DF, λrange) in DFs]
+    end
 end
 
 """
@@ -130,8 +149,13 @@ the corresponding data from the local database (does not require an active inter
 julia> Ar = RefractiveMaterial("https://refractiveindex.info/?shelf=main&book=Ar&page=Peck-15C")
 "Ar (Peck and Fisher 1964: n 0.47-2.06 µm; 15 °C)"
 
-julia> Ar(532, "nm")
-1.0002679711455778
+julia> describe(Ar)
+Name: Ar (Peck and Fisher 1964: n 0.47–2.06 µm; 15 °C)
+Reference: E. R. Peck and D. J. Fisher. Dispersion of argon, <a href="https://doi.org/10.1364/JOSA.54.001362"><i>J. Opt. Soc. Am.</i> <b>54</b>, 1362-1364 (1964)</a>
+Comments: 15 °C, 760 torr (101.325 kPa)
+Dispersion Formula: Gases
+Wavelength Range: (0.4679, 2.0587)
+Specifications: Dict{Symbol, Any}(:temperature => "15 °C", :wavelength_vacuum => true, :pressure => "101325 Pa", :n_absolute => true)
 ```
 """
 function RefractiveMaterial(url::String)
@@ -144,15 +168,87 @@ function RefractiveMaterial(url::String)
                        String(m["page"]))
 end
 
+show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = print(io, m.name, " - ", nameof(typeof(m.dispersion)))
 
-show(io::IO, ::MIME"text/plain", m::RefractiveMaterial{DF}) where {DF} = show(io, m.name)
-(m::RefractiveMaterial)(λ::Float64) = m.dispersion(λ)
-(m::RefractiveMaterial)(λ::AbstractQuantity) = m(ustrip(Float64, u"μm", λ))
+"""
+    showmetadata(rm::RefractiveMaterial)
+
+Prints the metadata for the material `rm` to the terminal.
+
+# Examples
+```julia-repl
+julia> Ar = RefractiveMaterial("main", "Ar", "Peck-15C")
+Ar (Peck and Fisher 1964: n 0.47–2.06 µm; 15 °C) - Gases
+
+julia> showmetadata(Ar)
+Name: Ar (Peck and Fisher 1964: n 0.47–2.06 µm; 15 °C)
+Reference: E. R. Peck and D. J. Fisher. Dispersion of argon, <a href="https://doi.org/10.1364/JOSA.54.001362"><i>J. Opt. Soc. Am.</i> <b>54</b>, 1362-1364 (1964)</a>
+Comments: 15 °C, 760 torr (101.325 kPa)
+Dispersion Formula: Gases
+Wavelength Range: (0.4679, 2.0587)
+Specifications: Dict{Symbol, Any}(:temperature => "15 °C", :wavelength_vacuum => true, :pressure => "101325 Pa", :n_absolute => true)
+```
+"""
+function showmetadata(rm::RefractiveMaterial)
+    println("Name: ", rm.name)
+    println("Reference: ", rm.reference)
+    println("Comments: ", rm.comment)
+    println("Dispersion Formula: ", nameof(typeof(rm.dispersion)))
+    println("Wavelength Range: ", rm.λrange)
+    println("Specifications: ", rm.specs)
+end
+
+"""
+    specifications(rm::RefractiveMaterial)
+
+Returns a `Dict` containing the measurement specifications for the material `rm`.
+
+# Examples
+```julia-repl
+julia> using Unitful
+
+julia> specs = specifications(Ar)
+Dict{Symbol, Any} with 4 entries:
+  :temperature       => "15 °C"
+  :wavelength_vacuum => true
+  :pressure          => "101325 Pa"
+  :n_absolute        => true
+
+julia> T, P = [uparse(replace(specs[s], ' ' => '*')) for s in (:temperature, :pressure)]
+2-element Vector{Quantity{Int64}}:
+     15 °C
+ 101325 Pa
+```
+"""
+function specifications(rm::RefractiveMaterial)
+    rm.specs
+end
+
+"""
+    dispersion(m::RefractiveMaterial, λ::Float64)
+
+Returns the refractive index of the material `m` at the wavelength `λ` (in microns). An error is thrown if the material does not have refractive index data.
+"""
+dispersion(m::RefractiveMaterial, λ::Float64) = m.dispersion(λ)
+dispersion(m::RefractiveMaterial{T}, λ::Float64) where {T <: Union{TabulatedN, TabulatedNK}} = m.dispersion.n(λ)
+dispersion(m::RefractiveMaterial{TabulatedK}, λ::Float64) = throw(ArgumentError("Material does not have refractive index data"))
+
+"""
+    extinction(m::RefractiveMaterial, λ::Float64)
+
+Returns the extinction coefficient of the material `m` at the wavelength `λ` (in microns). An error is thrown if the material does not have extinction data.
+"""
+extinction(m::RefractiveMaterial{T}, λ::Float64) where {T <: Union{TabulatedK, TabulatedNK}} = m.dispersion.k(λ)
+extinction(m::RefractiveMaterial, λ::Float64) = throw(ArgumentError("Material does not have extinction data"))
+
+(m::RefractiveMaterial)(λ::Float64) = dispersion(m, λ)
+(m::RefractiveMaterial)(λ::AbstractQuantity) = dispersion(m, ustrip(Float64, u"μm", λ))
 
 _dim_to_micron(dim) = ustrip(Float64, u"μm", uparse(dim))
-(m::RefractiveMaterial)(λ, dim::String) = m(λ*_dim_to_micron(dim))
+(m::RefractiveMaterial)(λ, dim::String) = dispersion(m, λ*_dim_to_micron(dim))
 
-(m::RefractiveMaterial{T})(λ::Float64) where {T <: Tabulated} = m.dispersion.n(λ)
+# (m::RefractiveMaterial{T})(λ::Float64) where {T <: Union{TabulatedN, TabulatedNK}} = m.dispersion.n(λ)
 
 include("precompile.jl")
-end # module
+
+end
