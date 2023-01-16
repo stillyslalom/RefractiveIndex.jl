@@ -1,5 +1,6 @@
 using RefractiveIndex
 using Test
+using Aqua
 
 function midrange(material)
     λmin, λmax = material.λrange
@@ -46,4 +47,9 @@ end
         # RefractiveNK
         @test testRM(RefractiveMaterial("main", "ZnO", "Stelling"), 1.5970)
     end
+end
+
+
+@testset "Aqua" begin
+    Aqua.test_all(RefractiveIndex; ambiguities=false)
 end
