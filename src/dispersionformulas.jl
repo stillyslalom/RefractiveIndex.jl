@@ -112,8 +112,10 @@ end
 
 abstract type Tabulated <: DispersionFormula end
 
-_linear_itp(knots, values) = extrapolate(interpolate((deduplicate_knots!(knots),), values, Gridded(Linear())), Throw())
-const ITP_TYPE = typeof(_linear_itp([1.0, 2.0], [1.0, 2.0]))
+# _linear_itp(knots, values) = extrapolate(interpolate((deduplicate_knots!(knots),), values, Gridded(Linear())), Throw())
+# const ITP_TYPE = typeof(_linear_itp([1.0, 2.0], [1.0, 2.0]))
+_linear_itp(knots, values) = LinearInterpolator(knots, values, WeakBoundaries())
+const ITP_TYPE = LinearInterpolator{Float64, WeakBoundaries}
 
 function _fix_sorting(raw)
     # several entries are not sorted by wavelength, so we need to sort them

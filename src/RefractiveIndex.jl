@@ -7,8 +7,9 @@ using Serialization
 using Scratch
 using Pkg.Artifacts
 using YAML
-using Interpolations
-using Interpolations: deduplicate_knots!
+# using Interpolations
+# using Interpolations: deduplicate_knots!
+using BasicInterpolators
 using Unitful: @u_str, uparse, uconvert, ustrip, AbstractQuantity
 
 import Base: getindex, show
