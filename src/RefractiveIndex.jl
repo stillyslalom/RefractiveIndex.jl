@@ -18,7 +18,7 @@ export RefractiveMaterial, dispersion, extinction, showmetadata, specifications
 const RI_INFO_ROOT = Ref{String}()
 const RI_LIB = Dict{Tuple{String, String, String}, NamedTuple{(:name, :path), Tuple{String, String}}}()
 const DB_VERSION = "refractiveindex.info-database-2022-10-01"
-const DB_INDEX_CACHE_PATH = joinpath(@get_scratch!("DB_VERSION"), "RI_index_cache.jls")
+const DB_INDEX_CACHE_PATH = joinpath(@get_scratch!(DB_VERSION), "RI_index_cache.jls")
 
 RI_INFO_ROOT[] = joinpath(artifact"refractiveindex.info", DB_VERSION, "database")
 
