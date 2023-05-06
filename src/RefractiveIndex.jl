@@ -1,7 +1,7 @@
 module RefractiveIndex
 
 using HTTP.URIs: unescapeuri
-using SnoopPrecompile
+using PrecompileTools
 using DelimitedFiles: readdlm
 using Serialization
 using Scratch
