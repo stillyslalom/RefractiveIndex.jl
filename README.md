@@ -36,4 +36,5 @@ julia> RefractiveMaterial("glass", "HIKARI-F", "F1")
  HIKARI-F (F1) - Polynomial
  HIKARI-F (F1) - TabulatedK
  ```
- 
+
+The database is currently limited to dispersion and extinction ('n-k') data. Future versions of the package may include the new [n₂](https://refractiveindex.info/n2) (nonlinear index) database - please file an issue if this functionality is important to you.
