@@ -1,5 +1,5 @@
 ## Precompilation
-@precompile_setup begin
+@setup_workload begin
     # Putting some things in `setup` can reduce the size of the
     # precompile file and potentially make loading faster.
     function midrange(material)
@@ -12,7 +12,7 @@
         material(midrange(material))
     end
 
-    @precompile_all_calls begin
+    @compile_workload begin
         redirect_stdout(devnull) do
             exercise(RefractiveMaterial("main", "Ar", "Grace-liquid-90K"))
             exercise(RefractiveMaterial("main", "CdTe", "Marple"))
