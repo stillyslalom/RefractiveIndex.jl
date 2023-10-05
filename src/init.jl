@@ -1,6 +1,6 @@
 function _init_cache()
     if !isfile(DB_INDEX_CACHE_PATH)
-        lib = YAML.load_file(joinpath(RI_INFO_ROOT[], "library.yml"), dicttype=Dict{String, Any})
+        lib = YAML.load_file(joinpath(RI_INFO_ROOT[], "catalog-nk.yml"), dicttype=Dict{String, Any})
         for shelf in lib
             shelfname = shelf["SHELF"]
             for book in shelf["content"]
