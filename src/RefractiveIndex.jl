@@ -36,6 +36,7 @@ struct RefractiveMaterial{DF<:DispersionFormula}
     dispersion::DF
     λrange::Tuple{Float64, Float64}
     specs::Dict{Symbol, Any}
+    data::Dict{Symbol, Any}
 end
 
 const DISPERSIONFORMULAE = Dict(
@@ -119,17 +120,22 @@ function RefractiveMaterial(shelf, book, page)
             comment,
             DF,
             λrange,
-            specs
+            specs,
+            only(data)
         )
     else
-        DFs = DispersionFormula.(data)
-        return [RefractiveMaterial(
-            string(book, " ($(metadata.name))"),
-            reference,
-            comment,
-            DF,
-            λrange,
-            specs) for (DF, λrange) in DFs]
+        return map(data) do datum
+            DF, λrange = DispersionFormula(datum)
+            RefractiveMaterial(
+                string(book, " ($(metadata.name))"),
+                reference,
+                comment,
+                DF,
+                λrange,
+                specs,
+                datum
+            )
+        end
     end
 end
 
