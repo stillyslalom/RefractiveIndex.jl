@@ -1,7 +1,7 @@
 name = "RefractiveIndex"
 uuid = "97a43521-7681-4ec2-835f-5b8ab7e7617e"
 authors = ["Alex Ames <alexander.m.ames@gmail.com> and contributors"]
-version = "0.4.1"
+version = "0.4.2"
 
 [deps]
 BasicInterpolators = "26cce99e-4866-4b6d-ab74-862489e035e0"
