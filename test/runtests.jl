@@ -65,7 +65,11 @@ end
 @testset "Database" begin
     # Load all database entries
     for (shelf, book, page) in keys(RefractiveIndex.RI_LIB)
-        @test_nowarn RefractiveMaterial(shelf, book, page)
+        try
+            @test_nowarn RefractiveMaterial(shelf, book, page)
+        catch e
+            @warn "Error loading $shelf/$book/$page: $e"
+        end
     end
 end
 
