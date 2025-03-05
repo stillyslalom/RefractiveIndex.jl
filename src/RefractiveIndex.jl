@@ -18,7 +18,7 @@ export RefractiveMaterial, dispersion, extinction, showmetadata, specifications
 
 const RI_INFO_ROOT = Ref{String}()
 const RI_LIB = Dict{Tuple{String, String, String}, NamedTuple{(:name, :path), Tuple{String, String}}}()
-const DB_VERSION = "refractiveindex.info-database-2024-12-31"
+const DB_VERSION = "refractiveindex.info-database-2025-02-23"
 const DB_INDEX_CACHE_PATH = joinpath(@get_scratch!(DB_VERSION), "RI_index_cache.jls")
 
 RI_INFO_ROOT[] = joinpath(artifact"refractiveindex.info", DB_VERSION, "database")
@@ -105,9 +105,13 @@ julia> Hikari_F1 = RefractiveMaterial("glass", "HIKARI-F", "F1")
 """
 function RefractiveMaterial(shelf, book, page)
     metadata = RI_LIB[(shelf, book, page)]
-    path = joinpath(RI_INFO_ROOT[], "data-nk", metadata.path)
+    path = joinpath(RI_INFO_ROOT[], "data", metadata.path)
     isfile(path) || @error "Specified material does not exist"
-    yaml = YAML.load_file(path; dicttype=Dict{Symbol, Any})
+    yaml = try
+        YAML.load_file(path; dicttype=Dict{Symbol, Any})
+    catch e
+        @error "Failed to load $shelf/$book/$page: $e"
+    end
     reference = get(yaml, :REFERENCES, "")
     comment = get(yaml, :COMMENTS, "")
     specs = get(yaml, :SPECS, Dict{Symbol, Any}())

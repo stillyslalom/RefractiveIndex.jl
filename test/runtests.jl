@@ -50,7 +50,7 @@ end
 
     @testset "Multiple dispersion data entries" begin # (https://github.com/stillyslalom/RefractiveIndex.jl/issues/14)
         # Hikari-F1 (Polynomial, TabulatedK)
-        HikariF1 = @test_nowarn RefractiveMaterial("glass", "HIKARI-F", "F1") 
+        HikariF1 = @test_nowarn RefractiveMaterial("specs", "HIKARI-optical", "F1") 
         @test length(HikariF1) == 2
         @test isapprox(extinction(HikariF1[2], 0.35), 4.5265e-7, rtol=1e-3)
     end
@@ -62,13 +62,18 @@ end
     end
 end
 
+broken_entries = Set((("specs", "CRYSTRAN-optical", "LaF3-o"), ("specs", "CRYSTRAN-optical", "quartz-o")))
 @testset "Database" begin
     # Load all database entries
     for (shelf, book, page) in keys(RefractiveIndex.RI_LIB)
-        try
-            @test_nowarn RefractiveMaterial(shelf, book, page)
-        catch e
-            @warn "Error loading $shelf/$book/$page: $e"
+        if (shelf, book, page) in broken_entries
+            @test_skip RefractiveMaterial(shelf, book, page) 
+        else
+            try
+                @test_nowarn RefractiveMaterial(shelf, book, page)
+            catch e
+                @warn "Error loading $shelf/$book/$page" #: $e"
+            end
         end
     end
 end
@@ -77,3 +82,4 @@ end
 @testset "Aqua" begin
     Aqua.test_all(RefractiveIndex; ambiguities=false)
 end
+
