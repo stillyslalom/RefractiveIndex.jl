@@ -38,3 +38,10 @@ julia> RefractiveMaterial("specs", "HIKARI-optical", "F1")
  ```
 
 The database is currently limited to dispersion and extinction ('n-k') data. Future versions of the package may include the new [n₂](https://refractiveindex.info/n2) (nonlinear index) database - please file an issue if this functionality is important to you.
+
+
+### Simular projects
+
+Python interfaces to RefractiveIndex:
+- https://github.com/toftul/refractiveindex
+- https://github.com/kitchenknif/PyTMM
