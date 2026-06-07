@@ -1,6 +1,6 @@
 ["refractiveindex.info"]
-git-tree-sha1 = "73996001b762d8f271429d43c281642097ff530c"
+git-tree-sha1 = "f2588f64a23f653a9aa30592835db70f87af5548"
 
     [["refractiveindex.info".download]]
-    sha256 = "b8a42d3c2e381b9d5a68a61ad82dc8c37f510cf952ff274677b764b2ee616519"
-    url = "https://github.com/polyanskiy/refractiveindex.info-database/archive/v2025-02-23.tar.gz"
+    sha256 = "1bc5c5043f64f600990dd89c5e0d8c8c880275c051e68ce5b478eb574a9e668f"
+    url = "https://github.com/polyanskiy/refractiveindex.info-database/archive/v2026-05-24.tar.gz"
