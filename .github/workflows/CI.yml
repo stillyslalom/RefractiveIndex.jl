@@ -32,6 +32,9 @@ jobs:
   docs:
     name: Documentation
     runs-on: ubuntu-latest
+    permissions: # needed for Documenter to push the built docs to gh-pages via GITHUB_TOKEN
+      contents: write
+      statuses: write
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
@@ -51,4 +54,3 @@ jobs:
       - run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
