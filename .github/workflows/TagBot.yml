@@ -16,11 +16,9 @@ jobs:
     steps:
       - uses: JuliaRegistries/TagBot@6b7c22e7bc2b8f4d1c56b7199a63421cf2667ed1 # v1.25.7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # For commits that modify workflow files: SSH key enables tagging, but
-          # releases require manual creation. For full automation of such commits,
-          # use a PAT with `workflow` scope instead of GITHUB_TOKEN.
+          # PAT with `workflow` scope (classic) — required so TagBot can tag and
+          # create releases for commits that modify .github/workflows files, which
+          # the default GITHUB_TOKEN is forbidden from doing.
           # See: https://github.com/JuliaRegistries/TagBot#commits-that-modify-workflow-files
-          ssh: ${{ secrets.DOCUMENTER_KEY }}
-          # ssh: ${{ secrets.NAME_OF_MY_SSH_PRIVATE_KEY_SECRET }}
+          token: ${{ secrets.TAGBOT_PAT }}
           # changelog_format: github  # 'custom' (default), 'github', or 'conventional'
