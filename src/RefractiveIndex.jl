@@ -114,7 +114,10 @@ function RefractiveMaterial(shelf, book, page)
     end
     reference = get(yaml, :REFERENCES, "")
     comment = get(yaml, :COMMENTS, "")
-    specs = get(yaml, :SPECS, Dict{Symbol, Any}())
+    # Older database releases store measurement conditions under SPECS; current releases
+    # use CONDITIONS (temperature in K, pressure in Pa). Merge both, CONDITIONS winning.
+    specs = merge(Dict{Symbol, Any}(get(yaml, :SPECS, Dict{Symbol, Any}())),
+                  Dict{Symbol, Any}(get(yaml, :CONDITIONS, Dict{Symbol, Any}())))
     data = get(yaml, :DATA, Dict{Symbol, String}[])
     if length(data) == 1
         DF, λrange = DispersionFormula(only(data))
@@ -216,20 +219,17 @@ Returns a `Dict` containing the measurement specifications for the material `rm`
 
 # Examples
 ```julia-repl
-julia> using Unitful
+julia> Ar = RefractiveMaterial("main", "Ar", "Borzsonyi");
 
 julia> specs = specifications(Ar)
-Dict{Symbol, Any} with 4 entries:
-  :temperature       => "15 °C"
-  :wavelength_vacuum => true
-  :pressure          => "101325 Pa"
-  :n_absolute        => true
-
-julia> T, P = [uparse(replace(specs[s], ' ' => '*')) for s in (:temperature, :pressure)]
-2-element Vector{Quantity{Int64}}:
-     15 °C
- 101325 Pa
+Dict{Symbol, Any} with 2 entries:
+  :temperature => 273
+  :pressure    => 100000
 ```
+
+Current refractiveindex.info releases give `temperature` in K and `pressure` in Pa
+(the `CONDITIONS` block). Pages from older database releases may instead carry a
+`SPECS` block with unit strings such as `"15 °C"`; both are merged into the result.
 """
 function specifications(rm::RefractiveMaterial)
     rm.specs

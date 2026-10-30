@@ -14,6 +14,12 @@ function testRM(material, n_ref)
 end
 
 @testset "RefractiveIndex.jl" begin
+    @testset "Measurement conditions" begin
+        specs = specifications(RefractiveMaterial("main", "Ar", "Borzsonyi"))
+        @test specs[:temperature] == 273
+        @test specs[:pressure] == 100000
+    end
+
     @testset "Dispersion formulas" begin
         # Sellmeier
         @test testRM(RefractiveMaterial("main", "Ar", "Grace-liquid-90K"), 1.2281)
